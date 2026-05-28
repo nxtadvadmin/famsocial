@@ -43,7 +43,7 @@ export default function SignIn({ onSignIn }: SignInProps) {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-slate-900 mb-2">Social Feed</h1>
-          <p className="text-slate-600">Sign in to start sharing</p>
+          <p className="text-slate-600">Sign in with your name and shape</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg border border-slate-200 p-8 space-y-6">
@@ -61,7 +61,8 @@ export default function SignIn({ onSignIn }: SignInProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-3">Choose Your Icon</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Your Shape</label>
+            <p className="text-xs text-slate-500 mb-3">This is your identity -- pick the same one to sign back in</p>
             <div className="grid grid-cols-4 gap-3">
               {ICONS.map(({ type, label, Icon }) => (
                 <button

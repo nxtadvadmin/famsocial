@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Camera, LogOut, Heart, Circle, Star, Triangle, X, Check } from 'lucide-react';
+import { Camera, LogOut, Heart, Circle, Star, Triangle, Pencil, X, Check } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Profile } from '../lib/useAuth';
 
@@ -18,9 +18,8 @@ const ICON_MAP = {
 
 export default function ProfileHeader({ profile, onSignOut, onAvatarUpdate }: ProfileHeaderProps) {
   const [isUploading, setIsUploading] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
   const [editName, setEditName] = useState(profile.name);
-  const [editIcon, setEditIcon] = useState(profile.icon);
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -57,20 +56,20 @@ export default function ProfileHeader({ profile, onSignOut, onAvatarUpdate }: Pr
     }
   };
 
-  const handleSaveProfile = async () => {
+  const handleSaveName = async () => {
     if (!editName.trim()) return;
     setIsSaving(true);
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ name: editName.trim(), icon: editIcon })
+        .update({ name: editName.trim() })
         .eq('id', profile.id);
 
       if (error) throw error;
       await onAvatarUpdate();
-      setIsEditing(false);
+      setIsEditingName(false);
     } catch (err) {
-      console.error('Profile update failed:', err);
+      console.error('Name update failed:', err);
     } finally {
       setIsSaving(false);
     }
@@ -108,9 +107,9 @@ export default function ProfileHeader({ profile, onSignOut, onAvatarUpdate }: Pr
           />
         </div>
 
-        {/* Name & Icon */}
+        {/* Name + Icon (icon is permanent) */}
         <div className="flex-1 min-w-0">
-          {isEditing ? (
+          {isEditingName ? (
             <div className="flex items-center gap-2">
               <input
                 type="text"
@@ -118,31 +117,19 @@ export default function ProfileHeader({ profile, onSignOut, onAvatarUpdate }: Pr
                 onChange={e => setEditName(e.target.value)}
                 className="text-sm px-2 py-1 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                 maxLength={30}
+                autoFocus
+                onKeyDown={e => { if (e.key === 'Enter') handleSaveName(); }}
               />
-              <div className="flex gap-1">
-                {(Object.keys(ICON_MAP) as Array<keyof typeof ICON_MAP>).map(iconKey => {
-                  const IC = ICON_MAP[iconKey];
-                  return (
-                    <button
-                      key={iconKey}
-                      type="button"
-                      onClick={() => setEditIcon(iconKey)}
-                      className={`p-1 rounded ${editIcon === iconKey ? 'bg-blue-100 text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
-                    >
-                      <IC className="w-4 h-4" />
-                    </button>
-                  );
-                })}
-              </div>
+              <IconComponent className="w-4 h-4 text-blue-500 flex-shrink-0" />
               <button
-                onClick={handleSaveProfile}
+                onClick={handleSaveName}
                 disabled={isSaving}
                 className="p-1 text-green-600 hover:bg-green-50 rounded"
               >
                 <Check className="w-4 h-4" />
               </button>
               <button
-                onClick={() => { setIsEditing(false); setEditName(profile.name); setEditIcon(profile.icon); }}
+                onClick={() => { setIsEditingName(false); setEditName(profile.name); }}
                 className="p-1 text-slate-400 hover:bg-slate-100 rounded"
               >
                 <X className="w-4 h-4" />
@@ -151,12 +138,13 @@ export default function ProfileHeader({ profile, onSignOut, onAvatarUpdate }: Pr
           ) : (
             <div
               className="flex items-center gap-2 cursor-pointer group"
-              onClick={() => setIsEditing(true)}
+              onClick={() => setIsEditingName(true)}
             >
               <p className="text-sm font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
                 {profile.name}
               </p>
               <IconComponent className="w-4 h-4 text-blue-500" />
+              <Pencil className="w-3 h-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
           )}
         </div>

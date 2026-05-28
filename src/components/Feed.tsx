@@ -6,9 +6,11 @@ import PostCard from './PostCard';
 interface FeedProps {
   refreshTrigger: number;
   currentProfileId: string | null;
+  selectedDate: Date;
+  onViewProfile: (profileId: string) => void;
 }
 
-export default function Feed({ refreshTrigger, currentProfileId }: FeedProps) {
+export default function Feed({ refreshTrigger, currentProfileId, selectedDate, onViewProfile }: FeedProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -16,9 +18,18 @@ export default function Feed({ refreshTrigger, currentProfileId }: FeedProps) {
   const loadPosts = async () => {
     try {
       setError('');
+
+      const startOfDay = new Date(selectedDate);
+      startOfDay.setHours(0, 0, 0, 0);
+
+      const endOfDay = new Date(selectedDate);
+      endOfDay.setHours(23, 59, 59, 999);
+
       const { data, error: queryError } = await supabase
         .from('posts')
         .select('*, profiles(*)')
+        .gte('created_at', startOfDay.toISOString())
+        .lte('created_at', endOfDay.toISOString())
         .order('created_at', { ascending: false });
 
       if (queryError) throw queryError;
@@ -32,10 +43,17 @@ export default function Feed({ refreshTrigger, currentProfileId }: FeedProps) {
 
   useEffect(() => {
     loadPosts();
-  }, [refreshTrigger]);
+  }, [refreshTrigger, selectedDate]);
 
   const handlePostDeleted = () => {
     loadPosts();
+  };
+
+  const isToday = () => {
+    const now = new Date();
+    return selectedDate.getFullYear() === now.getFullYear() &&
+           selectedDate.getMonth() === now.getMonth() &&
+           selectedDate.getDate() === now.getDate();
   };
 
   if (isLoading) {
@@ -53,8 +71,10 @@ export default function Feed({ refreshTrigger, currentProfileId }: FeedProps) {
   if (posts.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-slate-500 mb-2">No posts yet</p>
-        <p className="text-sm text-slate-400">Be the first to share something!</p>
+        <p className="text-slate-500 mb-2">
+          {isToday() ? 'No posts yet today' : `No posts on ${selectedDate.toLocaleDateString('default', { month: 'long', day: 'numeric' })}`}
+        </p>
+        {isToday() && <p className="text-sm text-slate-400">Be the first to share something!</p>}
       </div>
     );
   }
@@ -62,7 +82,13 @@ export default function Feed({ refreshTrigger, currentProfileId }: FeedProps) {
   return (
     <div className="space-y-4">
       {posts.map(post => (
-        <PostCard key={post.id} post={post} currentProfileId={currentProfileId} onDeleted={handlePostDeleted} />
+        <PostCard
+          key={post.id}
+          post={post}
+          currentProfileId={currentProfileId}
+          onDeleted={handlePostDeleted}
+          onViewProfile={onViewProfile}
+        />
       ))}
     </div>
   );

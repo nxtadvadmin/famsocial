@@ -7,6 +7,7 @@ interface PostCardProps {
   post: Post;
   currentProfileId: string | null;
   onDeleted: () => void;
+  onViewProfile: (profileId: string) => void;
 }
 
 const ICON_MAP = {
@@ -16,7 +17,7 @@ const ICON_MAP = {
   triangle: Triangle,
 };
 
-export default function PostCard({ post, currentProfileId, onDeleted }: PostCardProps) {
+export default function PostCard({ post, currentProfileId, onDeleted, onViewProfile }: PostCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -56,8 +57,11 @@ export default function PostCard({ post, currentProfileId, onDeleted }: PostCard
     <div className="bg-white rounded-lg shadow border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
       <div className="p-5">
         <div className="flex justify-between items-start gap-3 mb-3">
-          {/* User info */}
-          <div className="flex items-center gap-3">
+          {/* User info - clickable */}
+          <button
+            onClick={() => profile && onViewProfile(profile.id)}
+            className="flex items-center gap-3 group text-left"
+          >
             <div className="w-9 h-9 rounded-full overflow-hidden bg-slate-200 flex-shrink-0 border border-slate-300">
               {profile?.avatar_url ? (
                 <img src={profile.avatar_url} alt={profile.name} className="w-full h-full object-cover" />
@@ -69,12 +73,14 @@ export default function PostCard({ post, currentProfileId, onDeleted }: PostCard
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-sm font-semibold text-slate-900">{profile?.name || 'Anonymous'}</span>
+                <span className="text-sm font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
+                  {profile?.name || 'Anonymous'}
+                </span>
                 {IconComponent && <IconComponent className="w-3 h-3 text-blue-500" />}
               </div>
               <p className="text-xs text-slate-500">{formatTime(post.created_at)}</p>
             </div>
-          </div>
+          </button>
 
           {/* Delete button - only for own posts */}
           {isOwnPost && (

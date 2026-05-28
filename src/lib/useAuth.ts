@@ -14,7 +14,6 @@ export function useAuth() {
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        // Verify profile still exists in DB
         supabase
           .from('profiles')
           .select('*')
@@ -38,6 +37,24 @@ export function useAuth() {
   }, []);
 
   const signIn = useCallback(async (name: string, icon: 'heart' | 'circle' | 'star' | 'triangle') => {
+    // Try to find existing profile by name + icon
+    const { data: existing, error: findError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('name', name)
+      .eq('icon', icon)
+      .maybeSingle();
+
+    if (findError) throw findError;
+
+    if (existing) {
+      const p = existing as Profile;
+      setProfile(p);
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+      return p;
+    }
+
+    // Create new profile
     const { data, error } = await supabase
       .from('profiles')
       .insert({ name, icon })
@@ -53,7 +70,7 @@ export function useAuth() {
     return newProfile;
   }, []);
 
-  const updateProfile = useCallback(async (updates: Partial<Pick<Profile, 'name' | 'icon' | 'avatar_url'>>) => {
+  const updateProfile = useCallback(async (updates: Partial<Pick<Profile, 'name' | 'avatar_url'>>) => {
     if (!profile) return;
     const { data, error } = await supabase
       .from('profiles')

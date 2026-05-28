@@ -5,10 +5,16 @@ import SignIn from './components/SignIn';
 import ProfileHeader from './components/ProfileHeader';
 import CreatePost from './components/CreatePost';
 import Feed from './components/Feed';
+import Calendar from './components/Calendar';
+import UserProfile from './components/UserProfile';
+
+type View = { type: 'feed' } | { type: 'profile'; profileId: string };
 
 function App() {
   const { profile, isLoading, signIn, signOut, refreshProfile } = useAuth();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const [view, setView] = useState<View>({ type: 'feed' });
 
   const handlePostCreated = () => {
     setRefreshTrigger(prev => prev + 1);
@@ -16,6 +22,14 @@ function App() {
 
   const handleAvatarUpdate = async () => {
     await refreshProfile();
+  };
+
+  const handleViewProfile = (profileId: string) => {
+    setView({ type: 'profile', profileId });
+  };
+
+  const handleBackToFeed = () => {
+    setView({ type: 'feed' });
   };
 
   if (isLoading) {
@@ -49,9 +63,26 @@ function App() {
             onAvatarUpdate={handleAvatarUpdate}
           />
 
-          <CreatePost onPostCreated={handlePostCreated} profile={profile} />
+          {view.type === 'profile' ? (
+            <UserProfile profileId={view.profileId} onBack={handleBackToFeed} />
+          ) : (
+            <>
+              {/* Date picker */}
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-slate-800">Posts</h2>
+                <Calendar selectedDate={selectedDate} onDateSelect={setSelectedDate} />
+              </div>
 
-          <Feed refreshTrigger={refreshTrigger} currentProfileId={profile.id} />
+              <CreatePost onPostCreated={handlePostCreated} profile={profile} />
+
+              <Feed
+                refreshTrigger={refreshTrigger}
+                currentProfileId={profile.id}
+                selectedDate={selectedDate}
+                onViewProfile={handleViewProfile}
+              />
+            </>
+          )}
         </div>
       </main>
 
