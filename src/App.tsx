@@ -48,9 +48,14 @@ function App() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-3">
-          <Share2 className="w-7 h-7 text-blue-600" />
-          <h1 className="text-2xl font-bold text-slate-900">Social Feed</h1>
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Share2 className="w-7 h-7 text-blue-600" />
+            <h1 className="text-2xl font-bold text-slate-900">Social Feed</h1>
+          </div>
+          {view.type === 'feed' && (
+            <Calendar selectedDate={selectedDate} onDateSelect={setSelectedDate} />
+          )}
         </div>
       </header>
 
@@ -67,12 +72,6 @@ function App() {
             <UserProfile profileId={view.profileId} onBack={handleBackToFeed} />
           ) : (
             <>
-              {/* Date picker */}
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-800">Posts</h2>
-                <Calendar selectedDate={selectedDate} onDateSelect={setSelectedDate} />
-              </div>
-
               <CreatePost onPostCreated={handlePostCreated} profile={profile} />
 
               <Feed
