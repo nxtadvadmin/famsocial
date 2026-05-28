@@ -5,9 +5,10 @@ import PostCard from './PostCard';
 
 interface FeedProps {
   refreshTrigger: number;
+  currentProfileId: string | null;
 }
 
-export default function Feed({ refreshTrigger }: FeedProps) {
+export default function Feed({ refreshTrigger, currentProfileId }: FeedProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -17,7 +18,7 @@ export default function Feed({ refreshTrigger }: FeedProps) {
       setError('');
       const { data, error: queryError } = await supabase
         .from('posts')
-        .select('*')
+        .select('*, profiles(*)')
         .order('created_at', { ascending: false });
 
       if (queryError) throw queryError;
@@ -61,7 +62,7 @@ export default function Feed({ refreshTrigger }: FeedProps) {
   return (
     <div className="space-y-4">
       {posts.map(post => (
-        <PostCard key={post.id} post={post} onDeleted={handlePostDeleted} />
+        <PostCard key={post.id} post={post} currentProfileId={currentProfileId} onDeleted={handlePostDeleted} />
       ))}
     </div>
   );

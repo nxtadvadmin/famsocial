@@ -5,10 +5,20 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
+export type Profile = {
+  id: string;
+  name: string;
+  icon: 'heart' | 'circle' | 'star' | 'triangle';
+  avatar_url: string | null;
+  created_at: string;
+};
+
 export type Post = {
   id: string;
   content: string;
   media_url: string | null;
   media_type: 'image' | 'video' | null;
+  user_id: string | null;
   created_at: string;
+  profiles?: Profile | null;
 };

@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Send, Loader } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import type { Profile } from '../lib/useAuth';
 import MediaUploader from './MediaUploader';
 
 interface CreatePostProps {
   onPostCreated: () => void;
+  profile: Profile;
 }
 
-export default function CreatePost({ onPostCreated }: CreatePostProps) {
+export default function CreatePost({ onPostCreated, profile }: CreatePostProps) {
   const [content, setContent] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
@@ -66,6 +68,7 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
           content: content.trim(),
           media_url: mediaUrl,
           media_type: finalMediaType,
+          user_id: profile.id,
         });
 
       if (insertError) throw insertError;
